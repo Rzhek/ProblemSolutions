@@ -1,0 +1,159 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define printArr(arr) { for (auto x : arr) cout << x << " "; cout << '\n'; }
+#define print2DArr(arr) for (auto &x : arr) { printArr(x); }
+#define printPair(pair) cout << "(" << pair.first << ", " << pair.second << ")"
+#define forn(i, n) for (int i = 0; i < n; i++)
+#define rep(i, a, b) for (int i = a; i < b; ++i)
+#define pb(x) push_back(x)
+#define all(x) begin(x), end(x)
+#define sz(x) (int)(x).size()
+#define tests int tt; cin >> tt; while (tt--)
+#define f first
+#define s second
+
+using ll = long long;
+using ld = long double;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+using vi = vector<int>;
+using vl = vector<ll>;
+using vvi = vector<vi>;
+using vvl = vector<vl>;
+using vpi = vector<pii>;
+using vpl = vector<pll>;
+using iii = tuple<int, int, int>;
+
+const vpi dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+const int inf = 1e9;
+const int MOD = 1e9+7;
+const long double EPS = 1e-9;
+
+struct FlowEdge {
+    int v, u;
+    long long cap, flow = 0;
+    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+};
+
+struct Dinic {
+    const long long flow_inf = 1e18;
+    vector<FlowEdge> edges;
+    vector<vector<int>> adj;
+    int n, m = 0;
+    int s, t;
+    vector<int> level, ptr;
+    queue<int> q;
+
+    Dinic(int n, int s, int t) : n(n), s(s), t(t) {
+        adj.resize(n);
+        level.resize(n);
+        ptr.resize(n);
+    }
+
+    void add_edge(int v, int u, long long cap) {
+        edges.emplace_back(v, u, cap);
+        edges.emplace_back(u, v, 0);
+        adj[v].push_back(m);
+        adj[u].push_back(m + 1);
+        m += 2;
+    }
+
+    bool bfs() {
+        while (!q.empty()) {
+            int v = q.front();
+            q.pop();
+            for (int id : adj[v]) {
+                if (edges[id].cap - edges[id].flow < 1)
+                    continue;
+                if (level[edges[id].u] != -1)
+                    continue;
+                level[edges[id].u] = level[v] + 1;
+                q.push(edges[id].u);
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long long dfs(int v, long long pushed) {
+        if (pushed == 0)
+            return 0;
+        if (v == t)
+            return pushed;
+        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
+            int id = adj[v][cid];
+            int u = edges[id].u;
+            if (level[v] + 1 != level[u] || edges[id].cap - edges[id].flow < 1)
+                continue;
+            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
+            if (tr == 0)
+                continue;
+            edges[id].flow += tr;
+            edges[id ^ 1].flow -= tr;
+            return tr;
+        }
+        return 0;
+    }
+
+    long long flow() {
+        long long f = 0;
+        while (true) {
+            fill(level.begin(), level.end(), -1);
+            level[s] = 0;
+            q.push(s);
+            if (!bfs())
+                break;
+            fill(ptr.begin(), ptr.end(), 0);
+            while (long long pushed = dfs(s, flow_inf)) {
+                f += pushed;
+            }
+        }
+        return f;
+    }
+};
+
+struct street {
+    int u, v, cap;
+    string name;
+};
+
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    tests {
+        int n, m; cin >> n >> m;
+        int s = 0, t = n - 1;
+        vector<street> edges(m);
+        Dinic initial(n, s, t);
+        forn (i, m) {
+            string name;
+            getline(cin, name, ',');
+            int u = stoi(name);
+            getline(cin, name, ',');
+            int v = stoi(name);
+            getline(cin, name, ',');
+            int cap = stoi(name);
+            getline(cin, name);
+            name.erase(name.find_last_not_of(" \n\r\t")+1);
+
+            edges[i] = {u, v, cap, name};
+            initial.add_edge(u, v, cap);
+        }    
+        int maxKey = 0, maxVal = 0;
+        forn (modify, m) {
+            Dinic graph(n, s, t);
+            forn (i, m) {
+                graph.add_edge(edges[i].u, edges[i].v, (edges[i].name == edges[modify].name) ? inf : edges[i].cap);
+            }
+            int res = graph.flow();
+            if (res > maxVal) {
+                maxKey = modify;
+                maxVal = res;
+            }
+        }
+
+        cout << edges[maxKey].name << " " << maxVal - initial.flow() << "\n";
+
+    }
+    return 0;
+}

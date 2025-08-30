@@ -1,0 +1,29 @@
+int solve(Node * node, int green, int isMax) {
+    
+    // No children
+    if (!node->left && !node->right) {
+        return green;
+    }
+
+    // One child
+    if (!node->right) {
+        return green + solve(node->left, isMax && !green, isMax);
+    }
+    
+    // Two children
+    if (green) {
+        return 1 + solve(node->left, 0, isMax) + solve(node->right, 0, isMax);
+    }
+
+    if (isMax) {
+        return max(
+            solve(node->left, 1, isMax) + solve(node->right, 0, isMax), 
+            solve(node->left, 0, isMax) + solve(node->right, 1, isMax)
+        );
+    }
+    return min(
+        solve(node->left, 1, isMax) + solve(node->right, 0, isMax),
+        solve(node->left, 0, isMax) + solve(node->right, 1, isMax)
+    );
+
+}
