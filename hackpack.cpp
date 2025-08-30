@@ -43,9 +43,7 @@ const long double EPS = 1e-9;
 #pragma GCC optimize("trapv")
 
 // ? 5 minutes before the contest ends and you need to make your code as fast as possible? Add this
-#pragma GCC optimize("O3")
-#pragma GCC optimize("Ofast")
-#pragma GCC optimize("unroll-loops")
+#pragma GCC optimize("O3,unroll-loops,inline")
 // * might boost up to 1e10 operations in ~3.5 seconds (with a very small constant factor)
 
 // ? This might help with bitwise stuff
