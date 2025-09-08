@@ -49,6 +49,9 @@ const long double EPS = 1e-9;
 // ? This might help with bitwise stuff
 #pragma GCC target("avx2,bmi,bmi2,popcnt,lzcnt") 
 
+// * Increases the stack limit in terminal
+// ``` ulimit -s unlimited ```
+
 
 // * Hashes a file, ignoring all whitespace and comments. Use for
 // # verifying that code was correctly typed.
@@ -99,6 +102,21 @@ struct Compare {
 // x = p1^e1 * p2^r2 * ... * pk^3k
 // * Then, the number of divisors d(x) is given  by
 // d(x) = (e1 + 1) * (e2 + 1) * ... * (ek + 1) 
+
+
+// * Binary search hints
+// when searching for the first element, answer in hi
+while (lo < hi) {
+    int m = (lo + hi) / 2;
+    if (check(first, m)) hi = m; // check returns val on 000111
+    else lo = m + 1;
+}
+// when searching for the last element, asnwer in lo
+while ((hi - lo) > 1) {
+    int m = (lo + hi) / 2;
+    if (check(last, m)) lo = m; // check returns val on 111000
+    else hi = m;
+}
 
 // * factors generation
 // ! pay attention when want to exclude 1 and n
@@ -727,4 +745,50 @@ st *suffixAutomaton(string &str) {
     }
     while(last) last->term = 1, last = last->link;
     return root;
+}
+
+
+// centroid decomp
+int removed[maxn], sz[maxn];
+vector<int> adj[maxn];
+int dfs(int u, int p = -1) {
+    sz[u] = 1;
+    for (int v : adj[u]) {
+        if (v == p || removed[v]) continue;
+        sz[u] += dfs(v, u);;
+    }
+    return sz[u];
+}
+
+int find_centroid(int u, int p, int total) {
+    for (int v : adj[u]) {
+        if (v == p || removed[v]) continue;
+        if (sz[v] * 2 > total) return find_centroid(v, u, total);
+    }
+    return u;
+}
+
+void decomp(int u) {
+    int centroid = find_centroid(u, -1, dfs(u));
+    vector<int> cur = {1};
+
+    for (int v : adj[centroid]) {
+        if (removed[v]) continue;
+        // do the processing
+        // for example (from CSES - Fixed length paths):
+
+        // vector<int> nxt = {0};
+        // count(v, centroid, 1, nxt);
+        // for (int i = 1; i < nxt.size(); i++) {
+        //     if (cur.size() - 1 < k - i - 1) continue;
+        //     res += (ll)nxt[i] * cur[k-i-1];
+        // }
+        // for (int i = 1; i < nxt.size(); i++) add_val(cur, i, nxt[i]);
+    }
+
+    removed[centroid] = 1;
+    for (int v : adj[centroid]) {
+        if (removed[v]) continue;
+        decomp(v);
+    }
 }
