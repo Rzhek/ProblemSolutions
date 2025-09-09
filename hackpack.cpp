@@ -522,7 +522,7 @@ void findBridges(int u, int p, int timer, vi &disc, vi &low, vi &visited, vvi &e
 
 
 // * Fenwick Tree | Binary Index Tree (BIT)
-// 956D
+// 476fcd (full), 7fe6b9 (no construct)
 const int maxn = 2e5+5; // or whatever the upper bound is
 ll fen[maxn];
 inline void add(int p, int val) { // make sure to convert to 1 base index
@@ -546,6 +546,42 @@ inline void construct(vi &vals) {
         if (j <= n) fen[j] = fen[j] + fen[i];
     }
 }
+
+/**
+ * 2D Fenwick Tree implementation.
+ * Note that all cell locations are zero-indexed
+ * in this implementation.
+*/
+// 051484
+template <typename T> struct BIT2D {
+	const int n, m;
+	vector<vector<T>> bit;
+	BIT2D(int n, int m) : n(n), m(m), bit(n + 1, vector<T>(m + 1)) {}
+
+	/** adds val to the point (r, c) */
+	void add(int r, int c, T val) {
+		r++, c++;
+		for (; r <= n; r += r & -r) {
+			for (int i = c; i <= m; i += i & -i) { bit[r][i] += val; }
+		}
+	}
+
+	/** @returns sum of points with row in [0, r] and column in [0, c] */
+	T query(int r, int c) {
+		r++, c++;
+		T sum = 0;
+		for (; r > 0; r -= r & -r) {
+			for (int i = c; i > 0; i -= i & -i) { sum += bit[r][i]; }
+		}
+		return sum;
+	}
+
+	/** @returns sum of points with row in [r1, r2] and column in [c1, c2] */
+	T query(int r1, int c1, int r2, int c2) {
+		return rect_sum(r2, c2) - rect_sum(r2, c1 - 1) - rect_sum(r1 - 1, c2) +
+		       rect_sum(r1 - 1, c1 - 1);
+	}
+};
 
 // * Flow dinic's algo
 // can be used to find maximum bipirtite matching
