@@ -1,6 +1,5 @@
 grid = [input() for _ in range(7)]
 
-
 cur = 0
 res = 0
 for i in range((len(grid[0])+1) // 6):

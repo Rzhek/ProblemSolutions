@@ -46,13 +46,13 @@ pair<int, P> lineInter(P s1, P e1, P s2, P e2) {
     return {1, (s1*p+e1*q)/d};
 }
 
-long double polyArea(vector<P>& poly) {
+long double polyArea(vector<P> poly) {
     long double a = poly.back().cross(poly[0]);
     rep(i, 0, sz(poly) - 1) a += poly[i].cross(poly[i+1]);
     return abs(a/2);
 }
 
-vector<P> polygonCut(const vector<P>& poly, P s, P e) {
+vector<P> polygonCut(vector<P> poly, P s, P e) {
     vector<P> res;
     rep(i,0,sz(poly)) {
         P cur = poly[i], prev = i ? poly[i-1] : poly.back();
@@ -63,32 +63,21 @@ vector<P> polygonCut(const vector<P>& poly, P s, P e) {
     return res;
 }
 
-long double vol = 124.0;
-long double compute(P x, P y, int p, const vector<P>& poly) { 
-    auto newPoly = polygonCut(poly, x, y);
-    // for(P guy: newPoly) cout << guy << ' ';
-    // cout << '\n';
-    return p * polyArea(newPoly) * 5;
-}
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
 
     vector<P> poly(4);
-    for(int i = 0; i < 4; i++) cin >> poly[i].x >> poly[i].y;
-    long double res = 0;
-    res += compute(P(-0.5,0.5), P(-0.5,-0.5), 4, poly);
-    // cout << res << '\n';
-    res += compute(P(-0.5,-0.5), P(0.5,-0.5), 1, poly);
-    // cout << res << '\n';
-    res += compute(P(0.5,-0.5), P(0.5,0.5), 3, poly);
-    // cout << res << '\n';
-    res += compute(P(0.5,0.5), P(-0.5,0.5), 6, poly);
-    // cout << res << '\n';
-    // for(P guy: poly) cout << guy << ' ';
-    // cout << '\n';
-    res += (4 * 5 * polyArea(poly));
+    for (auto &[x, y] : poly) cin >> x >> y;
 
-    cout << fixed << setprecision(7);
-    cout << res/vol << '\n';
+    long double res = 0;
+
+    res += 5 * 1 * polyArea(polygonCut(poly, P(-.5,-.5), P(.5,-.5)));
+    res += 5 * 6 * polyArea(polygonCut(poly, P(.5,.5), P(-.5,.5)));
+    res += 5 * 4 * polyArea(polygonCut(poly, P(-.5,.5), P(-.5,-.5)));
+    res += 5 * 3 * polyArea(polygonCut(poly, P(.5,-.5), P(.5,.5)));
+    res += 4 * 5 * 25;
+
+    cout << fixed << setprecision(8) << res / (5 * 5 * 5 - 1) << "\n";
+
 }
