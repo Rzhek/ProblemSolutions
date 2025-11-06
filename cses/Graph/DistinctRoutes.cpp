@@ -112,16 +112,41 @@ struct Dinic {
     }
 };
 
+void dfs(int u, int n, vector<vector<int>> &adj, vector<int> &res) {
+    res.push_back(u);
+    if (u == n - 1) return;
+    assert(adj[u].size());
+    int v = adj[u].back();
+    adj[u].pop_back();
+    dfs(v, n, adj, res);
+}
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     int n, m; cin >> n >> m;
     Dinic dinic(n, 0, n-1);
     while (m--) {
-        int u, v, w; cin >> u >> v;
+        int u, v; cin >> u >> v;
         u--; v--;
         dinic.add_edge(u, v, 1);
     }
-    cout << dinic.flow() << "\n";
+    int res = dinic.flow();
+    cout << res << "\n";
+
+    vector<vector<int>> adj(n);
+    for (auto &edge : dinic.edges) {
+        if (edge.cap > 0 && edge.flow > 0) {
+            adj[edge.v].push_back(edge.u);
+        }
+    }
+
+    while (res--) {
+        vector<int> path;
+        dfs(0, n, adj, path);
+        cout << path.size() << "\n";
+        for (int x : path) cout << x + 1 << " ";
+        cout << "\n";
+    }
 
     return 0;
 }
