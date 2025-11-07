@@ -52,6 +52,9 @@ const long double EPS = 1e-9;
 // * Increases the stack limit in terminal
 // ``` ulimit -s unlimited ```
 
+// print with precision in python
+// print(f"{res:.6f}")
+
 
 // * Hashes a file, ignoring all whitespace and comments. Use for
 // # verifying that code was correctly typed.
