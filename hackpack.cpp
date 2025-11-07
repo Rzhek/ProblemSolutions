@@ -12,7 +12,7 @@ using namespace std;
 
 template<class T>
 ostream & operator << (ostream & os, vector<T> v) {
-   for (auto x : v) os << x << ' '; cout << "\n";
+   for (auto x : v) os << x << ' ';
    return os;
 }
 template<class T, class U>
@@ -72,6 +72,18 @@ const long double EPS = 1e-9;
 // * lower_bound: index of first element >= val; returns .end() if val > last elem
 // * upper_bound: index of first element > val; returns .end() if val >= last elem
 
+// * Indexed set (ordered tree)
+// Example Salary queries CSES
+// #include <ext/pb_ds/assoc_container.hpp>
+// #include <ext/pb_ds/tree_policy.hpp>
+// using namespace __gnu_pbds;
+
+// template <class T>
+// using Tree = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+// tree.insert(), tree.erase(),
+// range query [a, b]: tree.order_of_key({b, MOD}) - tree.order_of_key({a-1, MOD}) << "\n";
+// get element by order: *tree.find_by_order(ind);
+
 // * trim a string from both sides
 void foo(string string) {
     string.erase(string.find_last_not_of(" \n\r\t")+1);
@@ -89,6 +101,11 @@ vector<string> split(string &s, char sep = ' ') {
 // * random number generator
 mt19937 mt(time(nullptr));
 // mt() % n => random num [0, n)
+
+// uniform random numbers
+const int maxn = 1e9;
+mt19937 gen(rand());
+uniform_int_distribution<int> dist(1, maxn);
 
 // * Custom compare function, can be used in sets and maps
 struct Compare {
@@ -327,14 +344,12 @@ vvl multiply(const vvl &A, const vvl &B) {
     int m = A[0].size();
     int a = A.size(), b = B[0].size();
     vvl res(a, vl(b, 0));
-    forn(r, a) {
-        forn(c, b) {
-            ll val = 0;
-            forn(ind, m) {
-                val += (ll)A[r][ind] * B[ind][c] % MOD;
-                val %= MOD;
+    for (int r = 0; r < a; r++) {
+        for (int c = 0; c < b; c++) {
+            for (int ind = 0; ind < m; ind++) {
+                res[r][c] += A[r][ind] * B[ind][c] % MOD;
+                res[r][c] %= MOD;
             }
-            res[r][c] = val;
         }
     }
     return res;
@@ -345,14 +360,45 @@ vvl fastExpo(vvl &mat, ll p) {
     if (p == 0) { // Identity matrix case
         int n = mat.size();
         vvl identity(n, vl(n, 0));
-        forn(i, n) identity[i][i] = 1;
+        for(int i = 0; i < n; i++) identity[i][i] = 1;
         return identity;
     }
-    if (p == 1) return mat;
-    vvl res = fastExpo(mat, p/2);
+    vvl res = fastExpo(mat, p / 2);
     res = multiply(res, res);
-    if (p%2 == 1) res = multiply(res, mat);
+    if (p % 2) res = multiply(res, mat);
     return res;
+}
+
+// build kmp automaton from p values
+// O(N^2)
+vvl kmpAuto(string s) {
+    int m = s.size();
+    vector<int> p(m);
+    for (int i = 1; i < m; i++) {
+        int g = p[i-1];
+        while (g && s[i] != s[g]) g = p[g-1];
+        p[i] = g + (s[i] == s[g]);
+    }
+    
+    vvl mat(m + 1, vl(m + 1));
+    for (int u = 0; u < m - 1; u++) {
+        for (int ch = 0; ch < 26; ch++) {
+            int cur = u;
+            while (cur >= -1 && cur + 1 < m && s[cur + 1] - 'A' != ch) {
+                if (cur == -1) cur--;
+                else cur = p[cur] - 1;
+            }
+            mat[u+1][cur+2]++;
+        }
+    }
+    mat[0][0] = 25;
+    mat[0][1] = 1;
+    
+    // if want to accept any string that was ever in finish state
+    fill(mat.back().begin(), mat.back().end(), 0);
+    mat[m][m] = 26;
+    
+    return mat;
 }
 
 
@@ -507,20 +553,6 @@ void findBridges(int u, int p, int timer, vi &disc, vi &low, vi &visited, vvi &e
 }
 
 
-// * Indexed set (ordered tree)
-// Example Salary queries CSES
-// #include <ext/pb_ds/assoc_container.hpp>
-// #include <ext/pb_ds/tree_policy.hpp>
-// using namespace __gnu_pbds;
-
-// template <class T>
-// using Tree = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
-// tree.insert(), tree.erase(),
-// range query [a, b]: tree.order_of_key({b, MOD}) - tree.order_of_key({a-1, MOD}) << "\n";
-// get element by order: *tree.find_by_order(ind);
-
-
-
 // * Fenwick Tree | Binary Index Tree (BIT)
 // 476fcd (full), 7fe6b9 (no construct)
 const int maxn = 2e5+5; // or whatever the upper bound is
@@ -578,8 +610,8 @@ template <typename T> struct BIT2D {
 
 	/** @returns sum of points with row in [r1, r2] and column in [c1, c2] */
 	T query(int r1, int c1, int r2, int c2) {
-		return rect_sum(r2, c2) - rect_sum(r2, c1 - 1) - rect_sum(r1 - 1, c2) +
-		       rect_sum(r1 - 1, c1 - 1);
+		return query(r2, c2) - query(r2, c1 - 1) - query(r1 - 1, c2) +
+		       query(r1 - 1, c1 - 1);
 	}
 };
 
@@ -709,7 +741,7 @@ struct F {
     }
 };
 
-// * Apocalyplse attack dinic
+// * Apocalypse attack dinic
 // * d7f0f1
 struct Dinic {
 	struct Edge {
@@ -828,3 +860,28 @@ void decomp(int u) {
         decomp(v);
     }
 }
+
+// O(1) line container
+// Queries must be monotonic in x (non-decreasing)
+// Slopes must be monotomic in one direction (opposite direction of x)
+// Querying min value. Change to <= if want max
+// ce78a3
+struct Line{
+    ll k,m;
+    ll eval(ll x) { return k * x + m; }
+};
+struct LineContainer{
+    deque<Line> dq;
+    bool bad(const Line &a, const Line &b, const Line &c){
+        return (b.m - a.m) * (a.k - c.k) >= (c.m - a.m) * (a.k - b.k);
+    }
+    void add(ll k, ll m){
+        Line l = {k,m};
+        while (dq.size() >= 2 && bad(dq[dq.size()-2], dq.back(), l)) dq.pop_back();
+        dq.push_back(l);
+    }
+    ll query(ll x){
+        while (dq.size() >= 2 && dq[0].eval(x) >= dq[1].eval(x)) dq.pop_front();
+        return dq[0].eval(x);
+    }
+};
